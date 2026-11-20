@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive Booth's multiplication algorithm visualizer for signed two's complement multiplication.">
+  <title>Booth Lab | Signed Binary Multiplication</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Booth Lab home">
+        <span class="brand-mark">B<span>×</span></span>
+        <span><strong>BOOTH</strong><small>COMPUTING LAB</small></span>
+      </a>
+      <div class="topbar-meta"><span class="status-dot"></span> INTERACTIVE MODULE <span class="meta-divider"></span> SIGNED ARITHMETIC</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">COMPUTER ARCHITECTURE / ALGORITHM VISUALIZER</div>
+        <h1>Signed multiplication,<br><em>made visible.</em></h1>
+        <p>Trace Booth's algorithm one register transition at a time. See how two's complement arithmetic turns signed binary multiplication into a precise sequence of additions, subtractions and shifts.</p>
+        <div class="hero-chips"><span>2'S COMPLEMENT</span><span>REGISTER-LEVEL</span><span>STEP-BY-STEP</span></div>
+      </section>
+
+      <section class="control-panel panel">
+        <div class="section-label"><span>01</span> DEFINE OPERANDS <i></i><span class="label-note">SELECT A SIGNED BIT WIDTH</span></div>
+        <div class="inputs-grid">
+          <label class="input-group">
+            <span>Multiplicand <b>M</b></span>
+            <div class="input-wrap"><input id="multiplicand" type="number" value="5" step="1" inputmode="numeric" aria-describedby="input-error"><span class="input-suffix">DEC</span></div>
+          </label>
+          <label class="operator-mark">×</label>
+          <label class="input-group">
+            <span>Multiplier <b>Q</b></span>
+            <div class="input-wrap"><input id="multiplier" type="number" value="3" step="1" inputmode="numeric" aria-describedby="input-error"><span class="input-suffix">DEC</span></div>
+          </label>
+          <label class="input-group bits-group">
+            <span>Register width <b>n</b></span>
+            <select id="bit-width" aria-label="Register width">
+              <option value="4">4 bits</option>
+              <option value="5">5 bits</option>
+              <option value="6">6 bits</option>
+              <option value="8" selected>8 bits</option>
+            </select>
+          </label>
+          <button id="load-sample" class="button button-ghost" type="button">↻ <span>LOAD SAMPLE</span></button>
+        </div>
+        <div id="input-error" class="input-error" role="alert" aria-live="polite"></div>
+        <div class="operand-preview">
+          <div><span>M IN 2'S COMPLEMENT</span><code id="m-preview">00000101</code></div>
+          <div><span>Q IN 2'S COMPLEMENT</span><code id="q-preview">00000011</code></div>
+          <div class="range-note"><span>VALID RANGE</span><strong id="range-preview">−128 to +127</strong></div>
+        </div>
+      </section>
+
+      <section class="workspace-grid">
+        <div class="registers-column">
+          <div class="section-label"><span>02</span> REGISTER STATE <i></i><span class="live-badge"><span class="status-dot"></span> LIVE</span></div>
+          <div class="register-stack panel">
+            <div class="register-head"><span>REGISTER</span><span>VALUE <small>(TWO'S COMPLEMENT)</small></span></div>
+            <div class="register-row" id="register-A-row"><div class="register-name"><strong>A</strong><span>ACCUMULATOR</span></div><div class="bit-cells" id="register-A"></div><div class="register-decimal" id="decimal-A">0</div></div>
+            <div class="register-row" id="register-Q-row"><div class="register-name"><strong>Q</strong><span>MULTIPLIER</span></div><div class="bit-cells" id="register-Q"></div><div class="register-decimal" id="decimal-Q">+3</div></div>
+            <div class="register-row" id="register-m-row"><div class="register-name"><strong>M</strong><span>MULTIPLICAND</span></div><div class="bit-cells" id="register-M"></div><div class="register-decimal" id="decimal-M">+5</div></div>
+            <div class="register-row" id="register-negm-row"><div class="register-name"><strong>−M</strong><span>NEGATED M</span></div><div class="bit-cells" id="register-negM"></div><div class="register-decimal" id="decimal-negM">−5</div></div>
+            <div class="register-row qminus-row" id="register-qminus-row"><div class="register-name"><strong>Q<sub>−1</sub></strong><span>PREVIOUS BIT</span></div><div class="bit-cells one-cell" id="register-Qminus"></div><div class="register-decimal" id="decimal-Qminus">0</div></div>
+            <div class="bit-legend"><span><i class="legend-dot accumulator"></i>Accumulator</span><span><i class="legend-dot multiplier"></i>Multiplier</span><span><i class="legend-dot source"></i>Sources</span><span><i class="legend-dot decision"></i>Decision bits</span></div>
+          </div>
+          <div class="shift-callout"><span class="callout-icon">⇥</span><div><strong>ARITHMETIC RIGHT SHIFT</strong><p>The sign bit of A is copied into the new leftmost position, preserving the value's sign.</p></div></div>
+        </div>
+
+        <aside class="decision-column">
+          <div class="section-label"><span>03</span> DECISION LOGIC <i></i></div>
+          <div class="decision-card panel">
+            <div class="decision-header"><span>Q<sub>0</sub> · Q<sub>−1</sub></span><span class="decision-iteration" id="decision-iteration">READY</span></div>
+            <div class="decision-bits"><span id="q0-bit">0</span><b>·</b><span id="qminus-bit">0</span></div>
+            <div class="decision-rule">
+              <div><span>00</span><small>NO OPERATION</small></div><div><span>01</span><small>A + M</small></div><div><span>10</span><small>A − M</small></div><div><span>11</span><small>NO OPERATION</small></div>
+            </div>
+            <div class="current-operation" id="current-operation"><strong>READY TO BEGIN</strong><p>Press Start to initialize the algorithm.</p></div>
+          </div>
+          <div class="explanation panel"><div class="section-label compact"><span>WHY BOOTH?</span></div><p>Booth's algorithm reduces the number of additions by encoding runs of 1s in the multiplier. It works directly with signed values, using the same hardware for positive and negative operands.</p><div class="binary-flow"><span>ADD</span><i></i><span>SHIFT</span><i></i><span>REPEAT</span></div></div>
+        </aside>
+      </section>
+
+      <section class="execution-section">
+        <div class="section-label"><span>04</span> EXECUTION TRACE <i></i><span class="progress-label" id="progress-label">0 / 8 ITERATIONS</span></div>
+        <div class="execution-grid">
+          <div class="controls-panel panel">
+            <div class="control-buttons"><button id="start" class="button button-primary" type="button">▶ <span>START</span></button><button id="previous" class="button button-secondary" type="button">← <span>PREVIOUS</span></button><button id="next" class="button button-secondary" type="button"><span>NEXT STEP</span> →</button></div>
+            <div class="auto-controls"><button id="auto-play" class="button button-auto" type="button">▶ AUTO PLAY</button><button id="pause" class="button button-pause" type="button" disabled>Ⅱ PAUSE</button></div>
+            <div class="progress-track"><div id="progress-bar"></div><span id="progress-marker">0%</span></div>
+            <div class="speed-control"><label for="speed">ANIMATION SPEED</label><input id="speed" type="range" min="250" max="1600" step="50" value="800"><span id="speed-label">1.0×</span></div>
+            <button id="reset" class="reset-button" type="button">↺ RESET SIMULATION</button>
+          </div>
+          <div class="log-panel panel">
+            <div class="log-heading"><div><strong>OPERATION LOG</strong><span>Each row records one complete Booth cycle</span></div><span class="log-count" id="log-count">0 CYCLES</span></div>
+            <div class="table-wrap"><table><thead><tr><th>ITER.</th><th>Q<sub>0</sub> Q<sub>−1</sub></th><th>OPERATION</th><th>A BEFORE</th><th>A AFTER SHIFT</th><th>Q AFTER SHIFT</th><th>Q<sub>−1</sub></th></tr></thead><tbody id="operation-log"><tr class="empty-row"><td colspan="7">Start the simulation to populate the operation trace.</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="result-section">
+        <div class="section-label"><span>05</span> RESULT & VERIFICATION <i></i><span class="complete-badge" id="complete-badge">IN PROGRESS</span></div>
+        <div class="result-grid">
+          <div class="result-card panel"><div class="result-card-title">FINAL REGISTERS</div><div class="final-registers"><div><span>A</span><code id="final-A">—</code></div><div><span>Q</span><code id="final-Q">—</code></div></div><div class="combined-result"><span>COMBINED 2n-BIT PRODUCT</span><code id="final-product">—</code></div></div>
+          <div class="result-card panel"><div class="result-card-title">SIGNED DECIMAL OUTPUT</div><div class="big-result" id="decimal-result">—</div><div class="verification" id="verification"><span class="verify-icon">?</span><div><strong>WAITING FOR COMPLETION</strong><small>Run all iterations to verify the result.</small></div></div></div>
+          <div class="result-card panel comparison"><div class="result-card-title">METHOD SNAPSHOT</div><div class="compare-row"><span>ORDINARY MULTIPLICATION</span><strong>Repeated additions</strong></div><div class="compare-row"><span>BOOTH'S ALGORITHM</span><strong>Add / subtract + shift</strong></div><p>Fewer arithmetic operations when the multiplier contains consecutive 1s.</p></div>
+        </div>
+      </section>
+    </main>
+    <footer><span>BOOTH LAB <b>•</b> EDUCATIONAL SIMULATOR</span><span>All arithmetic executed in-browser · No data leaves this device</span></footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
